@@ -1,0 +1,9 @@
+{
+  "urlRandomness": "di-vc8",
+  "hostType": "lan",
+  "lanType": "ip",
+  "dev": true,
+  "strict": false,
+  "minify": false,
+  "urlType": "exp"
+}

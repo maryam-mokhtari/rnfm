@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>
+      پرشین گیگ - سرور مجازی
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/vm/src/assets/lib/jquery/jquery.min.js"></script>
+    <script src="/vm/src/assets/lib/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/vm/src/assets/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/vm/src/assets/css/style.css">
+    <link rel="stylesheet" href="/vm/src/assets/lib/font-awesome/css/font-awesome.min.css">
+    <link rel="icon" href="http://cdn.persiangig.com/images/favicon.ico">
+    <link rel="shortcut icon" href="http://cdn.persiangig.com/images/favicon.ico"/>
+  </head>
+  <body>
+    <div id="root">
+    </div>
+
+  <script>
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script')
+    if (location.href.startsWith('http://local.')) {
+      script.src = "http://localhost:3003/static/bundle.js"
+    } else {
+      script.src = "/vm/dist/bundle.js"
+    }
+    script.charset = "utf-8"
+    head.appendChild(script)
+  </script>
+     <!-- <script src="/vm/dist/bundle.js" charset="utf-8"></script> -->
+      <!--<script src="http://localhost:3003/static/bundle.js" charset="utf-8"></script> -->
+
+
+  </body>
+</html>

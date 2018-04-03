@@ -1,0 +1,34 @@
+<List dataArray={documents}
+  style={{marginBottom: 0}}
+            renderRow={(item) =>
+
+
+    <ListItem>
+{item.discriminator == 'D'?
+  <Icon name="folder" size={30} color="#48bef7"
+    onPress={() => this.openFolder(item.fullPath)} />
+  :
+  <Text onPress={() => navigate("Document",
+    {selectedDoc:item, documents: documents.filter(doc =>
+      doc.discriminator == 'F')})}>
+    <Thumbnail square small size={80}
+      source={{ uri: `${BASEURL}/preview/${item.uuid}/medium/${item.name}`
+    }} />
+  </Text>
+}
+
+                  <Body>
+                    <Text>{item.name}</Text>
+                    <Text note>{item.mimeType}</Text>
+                  </Body>
+<Right>
+  <Text style={{paddingLeft: 5, paddingRight: 5,}}
+    onPress={() => this.showOptions(item)}
+    >
+    <Icon name="ellipsis-v" size={15} color="#334a71"
+      />
+  </Text>
+</Right>
+</ListItem>
+}>
+</List>
