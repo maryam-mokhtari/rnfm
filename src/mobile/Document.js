@@ -33,7 +33,7 @@ class Document extends Component {
     const {documents} = params
     const cards = documents
     return (
-      <Container>
+      <Container style={{backgroundColor: 'white'}}>
         <Header>
           <Left>
             <Button transparent>

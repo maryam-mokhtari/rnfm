@@ -7,8 +7,12 @@ export default createConstants(
   'LOGOUT',
   'FOLDER',
   'DOCUMENTS',
+  'SHAREDDOCUMENTS',
+  'TRASHDOCUMENTS',
   'CHILDREN',
   'RENAME',
   'DELETE',
   'SHAREPG',
+  'REMOVEFOREVER',
+  'RESTORETRASH',
 )

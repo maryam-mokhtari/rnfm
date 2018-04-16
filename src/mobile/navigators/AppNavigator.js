@@ -10,6 +10,11 @@ import { logoutUser } from "../../actions";
 import Login from '../auth/Login';
 import Logout from '../auth/Logout';
 import Signup from '../auth/Signup';
+import Home from '../Home';
+import Shared from '../Shared';
+import Trash from '../Trash';
+import HomeScreen from '../HomeScreen';
+import SharedScreen from '../SharedScreen';
 import Documents from '../Documents';
 import Document from '../Document';
 
@@ -40,92 +45,68 @@ const settingPress = (props) => {
     }
   )
 }
-
-const HomeNavigator = StackNavigator({
-  Documents: {screen: Documents, },
-  Document: {screen: Document, },
-},
-
-{
-  headerMode: 'none',
-  cardStyle: {
-    backgroundColor: 'white',
-  },
-}
-)
-
-const SharedNavigator = StackNavigator({
-  Documents: {screen: Documents, },
-  Document: {screen: Document, },
-},
-
-{
-  headerMode: 'none',
-  cardStyle: {
-    backgroundColor: 'white',
-  },
-}
-)
-
-const TrashNavigator = StackNavigator({
-  Documents: {screen: Documents, },
-},
-{
-  headerMode: 'none',
-  cardStyle: {
-    backgroundColor: 'white',
-  },
-}
-)
-
-const SettingsNavigator = StackNavigator({
-  Documents: {screen: Documents, },
-},
-{
-  headerMode: 'none',
-  cardStyle: {
-    backgroundColor: 'white',
-  },
-}
-)
-//
-// const AppNavigator1 = StackNavigator({
-//   Login1: {
-//     screen: LoginScreen,
-//     // screenProps: {tintColor: 'red'}
-//     // path: 'people/:name',
-//     // navigationOptions: {headerTintColor: 'orange',},
-//     navigationOptions: {title: 'LOG IN'},
-//   },
-//   Main: { screen: MainScreen },
-//   Profile: { screen: ProfileScreen },
-//   IconBtn: { screen: IconBtnScreen },
-//   ModalExample: { screen: ModalExampleScreen },
+// 
+// const HomeNavigator = StackNavigator({
+//   Home: {screen: Home, },
+//   Document: {screen: Document, },
 // },
-// );
 //
-// const AppNavigator2 = StackNavigator({
-//   Login2: { screen: Login },
-//   Profile2: { screen: ProfileScreen },
+// {
+//   headerMode: 'none',
+//   cardStyle: {
+//     backgroundColor: 'white',
+//   },
+// }
+// )
+//
+// const SharedNavigator = StackNavigator({
+//   Shared: {screen: Shared, },
+//   Document: {screen: Document, },
+// },
+//
+// {
+//   headerMode: 'none',
+//   cardStyle: {
+//     backgroundColor: 'white',
+//   },
+// }
+// )
+//
+// const TrashNavigator = StackNavigator({
+//   Trash: {screen: Trash, },
 // },
 // {
 //   headerMode: 'none',
 //   cardStyle: {
-//     backgroundColor: 'red',
+//     backgroundColor: 'white',
 //   },
-// })
+// }
+// )
+//
+// const SettingsNavigator = StackNavigator({
+//   Home: {screen: Home, },
+// },
+// {
+//   headerMode: 'none',
+//   cardStyle: {
+//     backgroundColor: 'white',
+//   },
+// }
+// )
 
 const MainNavigator = TabNavigator(
   {
-    HomeNavigator: { screen: HomeNavigator },
-    SharedNavigator: { screen: SharedNavigator },
-    SettingsNavigator: { screen: SettingsNavigator },
-    TrashNavigator: { screen: TrashNavigator },
-    // LoginModalNavigator: { screen: AppNavigator2 },
-    // NativeBaseNavigation: { screen: NativeBaseNavigation },
+    HomeNavigator: { screen: Home },
+    SharedNavigator: { screen: Shared },
+    TrashNavigator: { screen: Trash },
+    SettingsNavigator: { screen: Home },
   },
 
   {
+    headerMode: 'none',
+    cardStyle: {
+      backgroundColor: 'white',
+    },
     tabBarPosition: "bottom",
     tabBarComponent: props => {
       console.log('tabBarComponent', this.props);
@@ -135,19 +116,28 @@ const MainNavigator = TabNavigator(
             <Button
               vertical
               active={props.navigationState.index === 0}
-              onPress={() => props.navigation.navigate("HomeNavigator")}>
+              onPress={() =>
+                {console.log('tabBarComponent:home')
+                props.navigation.navigate("HomeNavigator", { type: "home"})}
+              }>
               <Icon name="home" size={25} color="#2ca6e0" />
             </Button>
             <Button
               vertical
               active={props.navigationState.index === 1}
-              onPress={() => props.navigation.navigate("SharedNavigator")}>
+              onPress={() =>
+                {console.log('tabBarComponent:shared')
+                props.navigation.navigate("SharedNavigator", { type: "shared"})}
+              }>
               <Icon name="user-circle" size={25} color="#2ca6e0" />
             </Button>
             <Button
               vertical
               active={props.navigationState.index === 2}
-              onPress={() => props.navigation.navigate("TrashNavigator")}>
+              onPress={() =>
+                {console.log('tabBarComponent:trash')
+                props.navigation.navigate("TrashNavigator", { type: "trash"})}
+              }>
               <Icon name="trash" size={25} color="#2ca6e0" />
             </Button>
             <Button
@@ -165,16 +155,15 @@ const MainNavigator = TabNavigator(
 
 export const AppNavigator = StackNavigator({
   MainNavigator: { screen: MainNavigator },
+  Document: {screen: Document, },
   Login: { screen: Login },
   Logout: { screen: Logout },
-  // Signup: { screen: Signup },
 },
   {
   navigationOptions: {
     headerRight: <Button title="Info" />
   },
     headerMode: 'none',
-    // mode: 'modal',
     cardStyle: {
       backgroundColor: 'transparent',
     },

@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux"
 import { Image, View, ListView, StyleSheet, TextInput } from 'react-native'
 import { Item, Input, Fab, List, ListItem, Thumbnail, Text, Body, Grid, Col,
   Button, ActionSheet, Header, Left, Title, Right, Toast, } from "native-base";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { bindActionCreators } from 'redux'
 import Modal from "react-native-modal"
+import { getSharedDocuments, loadCurrentUser, logoutUser, setTab, createFolder, getChildren,
+  rename, remove, sharepg, changeModalText, changeModalState, } from "../actions";
 import {BASEURL} from '../utils'
 import {isArrayOK} from '../utils/array'
 import {ThumbnailOf} from '../utils/format'
@@ -17,18 +21,12 @@ const ADDBUTTONS = [
   { text: "ایجاد پوشه", icon: "analytics", iconColor: "#4f8ef7" },
 ];
 
-const CANCELOPTIONBUTTON = { text: "انصراف", icon: "close", iconColor: "#4f8ef7" }
-
-const DOCSOPTIONSBUTTONS = [
+const OPTIONSBUTTONS = [
+  { text: "انصراف", icon: "close", iconColor: "#4f8ef7" },
   { text: "حذف", icon: "trash", iconColor: "#4f8ef7" },
   { text: "تغییر نام", icon: "edit", iconColor: "#4f8ef7" },
   { text: "اشتراک گذاری", icon: "share-alt", iconColor: "#4f8ef7" },
   { text: "اشتراک با کاربران پرشین گیگ", icon: "user-circle", iconColor: "#4f8ef7" },
-];
-
-const TRASHOPTIONSBUTTONS = [
-  { text: "حذف برای همیشه", icon: "trash", iconColor: "#4f8ef7" },
-  { text: "بازگردانی", icon: "redo-alt", iconColor: "#4f8ef7" },
 ];
 
 const FILEOPTIONSBUTTONS = [
@@ -38,7 +36,7 @@ const FILEOPTIONSBUTTONS = [
 
 const isLoaded = false
 
-export default class Documents extends Component {
+class Shared extends Component {
   constructor(props) {
     super(props)
 
@@ -52,16 +50,9 @@ export default class Documents extends Component {
     }
   }
   async stateSet() {
+    console.log('shared stateSet:', this.props);
     this.setState({isLoading: true})
-    let type = this.props.type
-    // type = this.props.navigation.state.params && this.props.navigation.state.params.type || 'home'
-    if (type == 'shared') {
-      await this.props.getSharedDocuments()
-    } else if (type == 'trash') {
-      await this.props.getTrashDocuments()
-    } else {
-      await this.props.getDocuments()
-    }
+    await this.props.getSharedDocuments()
     this.setState({
       isLoading: false,
     })
@@ -92,7 +83,7 @@ export default class Documents extends Component {
         this.setState({
           isFolderShown: false,
         })
-      }).then(() => this.props.getDocuments()
+      }).then(() => this.props.getSharedDocuments()
       .then(() => this.setState({isLoading: false}))
     )
   }
@@ -109,7 +100,7 @@ export default class Documents extends Component {
     fullPath = fullPath.split('/')
     if (fullPath.length == 1) {
       this.setState({backIcon: false, fullPath, isLoading: true})
-      this.props.getDocuments().then(() => this.setState({isLoading: false}))
+      this.props.getSharedDocuments().then(() => this.setState({isLoading: false}))
     } else {
       fullPath.pop()
       fullPath = fullPath.join('/')
@@ -117,73 +108,44 @@ export default class Documents extends Component {
       this.props.getChildren(fullPath).then(() => this.setState({isLoading: false}))
     }
   }
-
-  directLink() {
-    console.log('Direct Link');
-  }
-  download() {
-    console.log('Download');
-  }
-  share() {
-    console.log('Share');
-  }
-  removeForever(id) {
-      this.setState({isLoading: true})
-      this.props.removeForever(id)
-        .then(() => this.props.getTrashDocuments()
-        .then(() => this.setState({isLoading: false}))
-      )
-  }
-  restoreTrash(id) {
-      this.setState({isLoading: true})
-      this.props.restoreTrash(id)
-        .then(() => this.props.getTrashDocuments()
-        .then(() => this.setState({isLoading: false}))
-      )
-  }
-
   showOptions(item) {
     ActionSheet.show(
       {
-        options: this.props.type == 'shared'?
-            [CANCELOPTIONBUTTON, ...FILEOPTIONSBUTTONS]
-          : this.props.type == 'trash'?
-            [CANCELOPTIONBUTTON, ...TRASHOPTIONSBUTTONS]
-          : item.discriminator == 'F'? [CANCELOPTIONBUTTON, ...DOCSOPTIONSBUTTONS, ...FILEOPTIONSBUTTONS]
-                                     : [CANCELOPTIONBUTTON, ...DOCSOPTIONSBUTTONS]
-            ,
-
+        options: item.discriminator == 'F'? [...OPTIONSBUTTONS, ...FILEOPTIONSBUTTONS] : OPTIONSBUTTONS ,
         cancelButtonIndex: CANCEL_INDEX,
         title: ""
       },
       buttonIndex => {
         switch (buttonIndex) {
+          // Remove
           case 1:
-            this.props.type == 'trash'? this.removeForever(item.id): this.props.type == 'shared'? this.directLink(): this.props.remove(item.id)
+            this.props.remove(item.id)
             break;
+          // Rename
           case 2:
-            this.props.type == 'trash'? this.restoreTrash(item.id): this.props.type == 'shared'? this.download():
-              // Rename
-              this.setState({selectedForRename: item.id, renameText: item.name})
+            this.setState({selectedForRename: item.id, renameText: item.name})
             break;
+          // Share
           case 3:
-            this.share()
+          console.log('Share');
             break;
+          // Share with PG users
           case 4:
-            // Share with PG users
             this.setState({sharepg: item.id})
             break;
 
+          // Direct Link
           case 5:
-            this.directLink()
+          console.log('Direct Link');
             break;
+          // Download
           case 6:
-            this.download()
+          console.log('Download');
             break;
           // default:
 
         }
-        this.setState({ clicked: DOCSOPTIONSBUTTONS[buttonIndex] });
+        this.setState({ clicked: OPTIONSBUTTONS[buttonIndex] });
       }
     )
   }
@@ -192,10 +154,8 @@ export default class Documents extends Component {
       this.openFolder(selectedItem.fullPath)
     } else if (selectedItem.discriminator == 'F') {
       if (selectedItem.mimeType.includes('image')) {
-        let type = this.props.type
-        let documents = type == 'shared'? this.props.sharedDocuments:
-          type == 'trash'? this.props.trashDocuments: this.props.documents
-        documents = documents.filter(item =>
+        console.log("image!!!");
+        const documents = this.props.sharedDocuments.filter(item =>
           item.discriminator == 'F' && item.mimeType.includes('image'))
         const selectedItemIndex = documents.findIndex(item => item.id == selectedItem.id)
         this.props.navigation.navigate("Document",
@@ -205,16 +165,13 @@ export default class Documents extends Component {
     }
   }
   render() {
-    console.log('Documents props', this.props)
+    console.log('Shared props', this.props)
     const {navigation, userData,
       changeModalText, changeModalState,
-      modalText, modalState, sharedDocuments, trashDocuments,
+      modalText, modalState, sharedDocuments,
       messageText, messageType, isLoading,
-      isAuthenticated, type,
+      isAuthenticated,
     } = this.props
-    let documents = type == 'shared'? this.props.sharedDocuments:
-      type == 'trash'? this.props.trashDocuments: this.props.documents
-    console.log('type:', type, documents);
     const { navigate } = navigation;
     const renameModalShowProps = {
       changeModalText, changeModalState,
@@ -240,7 +197,7 @@ export default class Documents extends Component {
             </Text>
             <View style={{flexDirection: 'row'}}>
             <Image style={{width: 110, height: 30, paddingTop: 10 }}
-              source={require('../img/persiangig.png')} />
+            source={require('../img/persiangig.png')} />
             </View>
 
           </Body>
@@ -253,9 +210,9 @@ export default class Documents extends Component {
           swipeDirection="left"
           >
           <View style={styles.folder}>
-            <Text style={{marginLeft: 5, marginBottom: 10 }}>اشتراک با کاربران پرشین‌گیگ</Text>
+            <Text style={{marginLeft: 5, marginBottom: 10 }}>Share with PersianGig users</Text>
              <Item floatingLabel last>
-              <Input placeholder='ایمیل'
+              <Input placeholder='email'
                 autoCapitalize = 'none'
                 getRef={ (c) => this.sharepgName = c }
                 />
@@ -266,7 +223,7 @@ export default class Documents extends Component {
                 this.sharepgName).then(() => this.setState({sharepg: false}))
               }}
               style={{marginLeft: 5, marginRight: 5, marginTop: 20, marginBottom: 20 }}>
-              <Text>اشتراک‌گذاری</Text>
+              <Text>Rename</Text>
             </Button>
           </View>
         </Modal>
@@ -340,8 +297,8 @@ export default class Documents extends Component {
                 </View>
             </View>
           }
-          {documents && isArrayOK(documents)?
-            <List dataArray={documents}
+          {sharedDocuments && isArrayOK(sharedDocuments)?
+            <List dataArray={sharedDocuments}
               style={{marginBottom: 0}}
               renderRow={item =>
               <ListItem onPress={() => this.press(item)}>
@@ -390,7 +347,7 @@ export default class Documents extends Component {
               {
                 options: ADDBUTTONS,
                 cancelButtonIndex: CANCEL_INDEX,
-                title: ""
+                title: "Shared"
               },
               buttonIndex => {
                 switch (buttonIndex) {
@@ -411,6 +368,10 @@ export default class Documents extends Component {
   }
 }
 
+Shared.navigationOptions = {
+  title: 'PersianGig',
+  headerRight: <Button title="Info" />,
+}
 
 const styles = StyleSheet.create({
   folder: {
@@ -420,3 +381,20 @@ const styles = StyleSheet.create({
     marginTop: -50,
   },
 });
+
+const mapDispatchToProps = dispatch => {
+  return bindActionCreators({getSharedDocuments, loadCurrentUser, setTab, logoutUser,
+    createFolder, getChildren, rename, remove, sharepg,
+    changeModalText, changeModalState,
+   }, dispatch)
+}
+
+const mapStateToProps = (state, ownProps) => {
+  const {tab, modalState, modalText,} = state.nav
+  const {userData, sharedDocuments, messageText, messageType, isLoading, isAuthenticated} = state.entities
+  return {tab, sharedDocuments, userData, modalState, modalText,
+    messageText, messageType, isLoading, isAuthenticated,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Shared)

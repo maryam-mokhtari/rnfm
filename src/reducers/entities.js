@@ -4,6 +4,7 @@ import {getCount, getNewStateOnFailure} from '../utils/entities'
 import {AsyncStorage} from 'react-native'
 
 const initialState = {
+  messageText: '',
 }
 
 async function saveToken(token) {
@@ -14,18 +15,21 @@ async function saveToken(token) {
 
 export default function entities(state = initialState , action) {
   var {messages} = state
-  let nextState = {...state, isAuthenticated: true}
-  let messageText = ''
+  let nextState = {...state, isAuthenticated: true, messageText: ''}
   console.log('ActionType: ', action.type);
   switch (action.type) {
     case ActionTypes.CURRENTUSER_REQUEST:
     case ActionTypes.FOLDER_REQUEST:
     case ActionTypes.DOCUMENTS_REQUEST:
+    case ActionTypes.SHAREDDOCUMENTS_REQUEST:
+    case ActionTypes.TRASHDOCUMENTS_REQUEST:
     case ActionTypes.CHILDREN_REQUEST:
     case ActionTypes.RENAME_REQUEST:
     case ActionTypes.DELETE_REQUEST:
     case ActionTypes.SHAREPG_REQUEST:
     case ActionTypes.LOGOUT_REQUEST:
+    case ActionTypes.REMOVEFOREVER_REQUEST:
+    case ActionTypes.RESTORETRASH_REQUEST:
       return {...nextState, isLoading: true, messageText: null, messageType: null}
     case ActionTypes.LOGOUT_SUCCESS:
       AsyncStorage.removeItem('token')
@@ -39,6 +43,18 @@ export default function entities(state = initialState , action) {
       return {
         ...nextState,
         documents: action.payload,
+        isLoading: false,
+      };
+    case ActionTypes.SHAREDDOCUMENTS_SUCCESS:
+      return {
+        ...nextState,
+        sharedDocuments: action.payload,
+        isLoading: false,
+      };
+    case ActionTypes.TRASHDOCUMENTS_SUCCESS:
+      return {
+        ...nextState,
+        trashDocuments: action.payload,
         isLoading: false,
       };
     case ActionTypes.CHILDREN_SUCCESS:
@@ -68,6 +84,16 @@ export default function entities(state = initialState , action) {
         ...nextState,
         isLoading: false
       };
+    case ActionTypes.REMOVEFOREVER_SUCCESS:
+      return {
+        ...nextState,
+        isLoading: false
+      };
+    case ActionTypes.RESTORETRASH_SUCCESS:
+      return {
+        ...nextState,
+        isLoading: false
+      };
     case ActionTypes.LOGIN_FAILURE:
       return {...nextState, isAuthenticated: false }
     case ActionTypes.LOGOUT_FAILURE:
@@ -77,11 +103,16 @@ export default function entities(state = initialState , action) {
 
     case ActionTypes.CURRENTUSER_FAILURE:
     case ActionTypes.DOCUMENTS_FAILURE:
+    case ActionTypes.SHAREDDOCUMENTS_FAILURE:
+    case ActionTypes.TRASHDOCUMENTS_FAILURE:
     case ActionTypes.CHILDREN_FAILURE:
     case ActionTypes.RENAME_FAILURE:
     case ActionTypes.FOLDER_FAILURE:
     case ActionTypes.DELETE_FAILURE:
     case ActionTypes.SHAREPG_FAILURE:
+    case ActionTypes.REMOVEFOREVER_FAILURE:
+    case ActionTypes.RESTORETRASH_FAILURE:
+      console.log('ERROR:', JSON.stringify(action.payload.errors));
       const {newState, errorMessage} = getNewStateOnFailure(state, action.payload)
       nextState = {...newState, messageText: errorMessage, messageType: 'danger', isLoading: false, }
       if (action.payload && action.payload.errors && Array.isArray(action.payload.errors)

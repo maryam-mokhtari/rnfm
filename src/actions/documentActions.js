@@ -19,8 +19,22 @@ export const createFolder = (name) => {
 
 export const getDocuments = (type) => {
   return (dispatch, getState) => {
-    return dispatch(fetch(`cfs/rest/documents${type==undefined? '': '/trash'}?sort=%2Bdiscriminator%2C%2Bname`,
+    return dispatch(fetch('cfs/rest/documents?sort=%2Bdiscriminator%2C%2Bname',
     'DOCUMENTS', 'GET'))
+  }
+}
+
+export const getSharedDocuments = (type) => {
+  return (dispatch, getState) => {
+    return dispatch(fetch('cfs/rest/sharedwithme?sort=%2Bdiscriminator%2C%2Bname',
+    'SHAREDDOCUMENTS', 'GET'))
+  }
+}
+
+export const getTrashDocuments = (type) => {
+  return (dispatch, getState) => {
+    return dispatch(fetch('cfs/rest/documents/trash?sort=%2Bdiscriminator%2C%2Bname',
+    'TRASHDOCUMENTS', 'GET'))
   }
 }
 
@@ -49,5 +63,18 @@ export const sharepg = (ids) => {
   return (dispatch, getState) => {
     return dispatch(fetch(`cfs/rest/documents/share?ids=${ids}`,
     'SHAREPG', 'POST'))
+  }
+}
+
+export const removeForever = (ids) => {
+  return (dispatch, getState) => {
+    return dispatch(fetch(`cfs/rest/documents?ids=${ids}`,
+    'REMOVEFOREVER', 'DELETE', null, ids, ids))
+  }
+}
+export const restoreTrash = (ids) => {
+  return (dispatch, getState) => {
+    return dispatch(fetch(`cfs/rest/documents/resotre?ids=${ids}`,
+    'RESTORETRASH', 'PUT', null, ids, ids))
   }
 }
