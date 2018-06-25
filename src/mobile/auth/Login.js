@@ -6,6 +6,7 @@ import { Container, Content, Form, Item, Input, Label, Button, Toast, } from 'na
 import Icon from 'react-native-vector-icons/FontAwesome';
 // import crypto from 'crypto'
 // import '../../../shim.js'
+import sha1 from 'crypto-js/sha1'
 import { login, loadCurrentUser } from "../../actions";
 
 const styles = StyleSheet.create({
@@ -31,7 +32,7 @@ class Login extends Component {
     this.props.loadCurrentUser()
     await this.props.login(this.username.props.value,
       // crypto.createHash('sha1').update(
-        this.password.props.value
+        sha1(this.password.props.value)
       // ).digest('hex')
     )
     if (this.props.isAuthenticated == false) {
