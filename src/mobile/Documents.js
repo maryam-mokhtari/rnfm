@@ -233,6 +233,43 @@ export default class Documents extends Component {
                   size={30} onPress={() => this.backToParent()} />
               }
             </Button>
+            <Button
+              onPress={() => {
+            // const url = 'http://po.stg.persiangig.com/cfs/rest/users/currentUser'
+            const url = 'http://po.stg.persiangig.com/cfs/rest/languages'
+            console.log('url::', url);
+            fetch(url,
+              // {
+              //   headers:{
+              //     'Content-Type': 'application/json',
+              //     'Accept': 'application/json',
+              //     token: 'R+x1xk1uLPUOP/lV+viI0g==',
+              //   }
+              // }
+            )
+          .then(response => {
+            console.log('success', response);
+            const res = response.json()
+            console.log('res', res);
+            return res
+          })
+           .then(res => console.log('res:', res))
+          .catch(function(error) {
+            console.log('There has been a problem with your fetch operation: ' + error.message);
+            // ADD THIS THROW error
+            throw error;
+          });
+        }}
+        ><Text>Click</Text></Button>
+
+
+
+
+
+
+
+
+
           </Left>
           <Body>
             <Text style={{color: '#bbb', position: 'absolute', right: -120, paddingTop: 10, fontSize: 15,}}>

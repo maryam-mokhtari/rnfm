@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux"
 import { Button } from 'react-native'
 import Documents from './Documents'
+// import Upload from './Upload'
 import { bindActionCreators } from 'redux'
 import { getDocuments, getSharedDocuments, getTrashDocuments, loadCurrentUser, logoutUser, setTab, createFolder, getChildren,
   rename, remove, sharepg, changeModalText, changeModalState,

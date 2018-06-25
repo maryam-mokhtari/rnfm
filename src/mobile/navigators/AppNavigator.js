@@ -45,7 +45,7 @@ const settingPress = (props) => {
     }
   )
 }
-// 
+//
 // const HomeNavigator = StackNavigator({
 //   Home: {screen: Home, },
 //   Document: {screen: Document, },

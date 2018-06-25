@@ -4,9 +4,8 @@ import { bindActionCreators } from 'redux'
 import { Text, View, StyleSheet, Image, } from 'react-native'
 import { Container, Content, Form, Item, Input, Label, Button, Toast, } from 'native-base'
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { NavigationActions } from 'react-navigation'
-import crypto from 'crypto'
-import '../../../shim.js'
+// import crypto from 'crypto'
+// import '../../../shim.js'
 import { login, loadCurrentUser } from "../../actions";
 
 const styles = StyleSheet.create({
@@ -31,7 +30,9 @@ class Login extends Component {
     console.log('this::', this);
     this.props.loadCurrentUser()
     await this.props.login(this.username.props.value,
-      crypto.createHash('sha1').update(this.password.props.value).digest('hex')
+      // crypto.createHash('sha1').update(
+        this.password.props.value
+      // ).digest('hex')
     )
     if (this.props.isAuthenticated == false) {
       Toast.show({

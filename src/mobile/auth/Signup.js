@@ -1,7 +1,6 @@
 import React from 'react'
 import { Text, View, Button, StyleSheet, } from 'react-native'
 // import {Button} from 'native-base'
-import { NavigationActions } from 'react-navigation'
 
 const styles = StyleSheet.create({
   container: {
