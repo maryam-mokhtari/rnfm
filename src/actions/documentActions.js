@@ -78,3 +78,21 @@ export const restoreTrash = (ids) => {
     'RESTORETRASH', 'PUT', null, ids, ids))
   }
 }
+
+
+export const upload = (res) => {
+
+  const data = new FormData();
+  data.append('name', res.fileName)
+  data.append('file', {
+    uri: res.uri,
+    type: 'application/pdf', //res.type,
+    name: res.fileName
+  });
+  console.log('data:', data);
+
+  return (dispatch, getState) => {
+    return dispatch(fetch(`cfs/rest/upload/binary?path-id=0&name=${res.fileName}&size=${res.fileSize}&dlc=false&subdomain=false`,
+    'UPLOAD', 'POST', data, null, null, null, false))
+  }
+}

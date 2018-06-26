@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { bindActionCreators } from 'redux'
 import { logoutUser } from "../../actions";
 import Login from '../auth/Login';
+import Upload from '../Upload';
 import Logout from '../auth/Logout';
 import Signup from '../auth/Signup';
 import Home from '../Home';
@@ -156,6 +157,7 @@ const MainNavigator = TabNavigator(
 export const AppNavigator = StackNavigator({
   MainNavigator: { screen: MainNavigator },
   Document: {screen: Document, },
+  Upload: {screen: Upload},
   Login: { screen: Login },
   Logout: { screen: Logout },
 },

@@ -2,11 +2,13 @@ import React, { Component } from 'react';
 import { Image, View, ListView, StyleSheet, TextInput } from 'react-native'
 import { Item, Input, Fab, List, ListItem, Thumbnail, Text, Body, Grid, Col,
   Button, ActionSheet, Header, Left, Title, Right, Toast, } from "native-base";
+import {AsyncStorage} from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Modal from "react-native-modal"
 import {BASEURL} from '../utils'
 import {isArrayOK} from '../utils/array'
 import {ThumbnailOf} from '../utils/format'
+import { DocumentPicker, DocumentPickerUtil } from 'react-native-document-picker';
 //import Row from './Row'
 
 const CANCEL_INDEX = 0;
@@ -141,6 +143,72 @@ export default class Documents extends Component {
         .then(() => this.setState({isLoading: false}))
       )
   }
+  async doUpload(res) {
+
+    // Android
+    console.log('res',
+      res,
+      res.uri,
+      res.type, // mime type
+      res.fileName,
+      res.fileSize
+    );
+    // let source = {uri: res.uri.replace('file://', ''), isStatic: true};
+    const url = `http://po.stg.persiangig.com/cfs/rest/upload/binary?path-id=0&name=${res.fileName}&size=${res.fileSize}&dlc=false&subdomain=false`
+    // const url = 'http://po.stg.persiangig.com/cws/rest/vmBills/createInvoice'
+    // const url = 'http://po.stg.persiangig.com/cfs/rest/users/currentUser'
+    // const url = 'http://po.stg.persiangig.com/cfs/rest/languages'
+    // console.log('url::', url);
+
+    this.setState({isLoading: true})
+    // this.props.upload(res)
+    // .then(() => this.props.getDocuments())
+    // .then(() => this.setState({isLoading: false}))
+
+    const token = await AsyncStorage.getItem('token')
+    const data = new FormData();
+    data.append('name', res.fileName)
+    data.append('file', {
+      uri: res.uri,
+      type: res.type,
+      name: res.fileName
+    });
+    const options = {
+      body: data,
+      method: 'post',
+      headers:{
+        'Content-Type': 'multipart/form-data',
+        token,
+      }
+    }
+    console.log('data:', data, options);
+    fetch(
+      url,
+      options
+    )
+    .then(response => {
+      console.log('success', response);
+      const res = response.json()
+      console.log('res', res);
+      return res
+    })
+    .then(() => this.props.getDocuments())
+    .then(() => this.setState({isLoading: false}))
+    .catch(function(error) {
+      console.log('There has been a problem with your fetch operation: ' + error.message);
+      // ADD THIS THROW error
+      throw error;
+    });
+
+  }
+  upload() {
+    DocumentPicker.show({
+      filetype: [DocumentPickerUtil.allFiles()],
+    }
+    ,(error,res) => {
+      this.doUpload(res)
+    });
+  }
 
   showOptions(item) {
     ActionSheet.show(
@@ -233,43 +301,6 @@ export default class Documents extends Component {
                   size={30} onPress={() => this.backToParent()} />
               }
             </Button>
-            <Button
-              onPress={() => {
-            // const url = 'http://po.stg.persiangig.com/cfs/rest/users/currentUser'
-            const url = 'http://po.stg.persiangig.com/cfs/rest/languages'
-            console.log('url::', url);
-            fetch(url,
-              // {
-              //   headers:{
-              //     'Content-Type': 'application/json',
-              //     'Accept': 'application/json',
-              //     token: 'R+x1xk1uLPUOP/lV+viI0g==',
-              //   }
-              // }
-            )
-          .then(response => {
-            console.log('success', response);
-            const res = response.json()
-            console.log('res', res);
-            return res
-          })
-           .then(res => console.log('res:', res))
-          .catch(function(error) {
-            console.log('There has been a problem with your fetch operation: ' + error.message);
-            // ADD THIS THROW error
-            throw error;
-          });
-        }}
-        ><Text>Click</Text></Button>
-
-
-
-
-
-
-
-
-
           </Left>
           <Body>
             <Text style={{color: '#bbb', position: 'absolute', right: -120, paddingTop: 10, fontSize: 15,}}>
@@ -431,6 +462,11 @@ export default class Documents extends Component {
               },
               buttonIndex => {
                 switch (buttonIndex) {
+                  case 1:
+                    console.log('UPLOAD');
+                    this.upload()
+                    // this.props.navigation.navigate("Upload")
+                    break;
                   case 2:
                     this.setState({isFolderShown: true})
                     break;

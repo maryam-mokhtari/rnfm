@@ -30,6 +30,7 @@ export default function entities(state = initialState , action) {
     case ActionTypes.LOGOUT_REQUEST:
     case ActionTypes.REMOVEFOREVER_REQUEST:
     case ActionTypes.RESTORETRASH_REQUEST:
+    case ActionTypes.UPLOAD_REQUEST:
       return {...nextState, isLoading: true, messageText: null, messageType: null}
     case ActionTypes.LOGOUT_SUCCESS:
       AsyncStorage.removeItem('token')
@@ -79,16 +80,9 @@ export default function entities(state = initialState , action) {
         documents: state.documents.filter(doc => doc.id != action.meta),
         isLoading: false
       };
+    case ActionTypes.UPLOAD_SUCCESS:
     case ActionTypes.SHAREPG_SUCCESS:
-      return {
-        ...nextState,
-        isLoading: false
-      };
     case ActionTypes.REMOVEFOREVER_SUCCESS:
-      return {
-        ...nextState,
-        isLoading: false
-      };
     case ActionTypes.RESTORETRASH_SUCCESS:
       return {
         ...nextState,
@@ -112,7 +106,8 @@ export default function entities(state = initialState , action) {
     case ActionTypes.SHAREPG_FAILURE:
     case ActionTypes.REMOVEFOREVER_FAILURE:
     case ActionTypes.RESTORETRASH_FAILURE:
-      console.log('ERROR:', JSON.stringify(action.payload.errors));
+    case ActionTypes.UPLOAD_FAILURE:
+      console.log('ERROR:', action, JSON.stringify(action.payload.errors));
       const {newState, errorMessage} = getNewStateOnFailure(state, action.payload)
       nextState = {...newState, messageText: errorMessage, messageType: 'danger', isLoading: false, }
       if (action.payload && action.payload.errors && Array.isArray(action.payload.errors)

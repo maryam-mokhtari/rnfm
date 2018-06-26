@@ -14,7 +14,12 @@ export async function fetch (endpoint, actionType, method = 'GET', body, metaReq
     endpoint =  BASEURL + '/' + endpoint
   }
   // let headers = {}
-  if (isHeaderContent) {
+  //---------- upload exception ----------
+  if (isHeaderContent == null) {
+    headers['Content-Type'] = 'multipart/form-data'
+  }
+  //----------
+  else if (isHeaderContent) {
     headers['Content-Type'] = 'application/json'
   }
   if (isHeaderAccept) {

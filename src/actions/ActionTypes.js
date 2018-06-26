@@ -15,4 +15,5 @@ export default createConstants(
   'SHAREPG',
   'REMOVEFOREVER',
   'RESTORETRASH',
+  'UPLOAD',
 )
