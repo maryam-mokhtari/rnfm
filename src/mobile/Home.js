@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux"
 import { Button } from 'react-native'
-// import Documents from './Documents'
+import Documents from './Documents'
 // import Upload from './Upload'
-import Download from './Download'
+// import Download from './Download'
 import { bindActionCreators } from 'redux'
 import { getDocuments, getSharedDocuments, getTrashDocuments, loadCurrentUser, logoutUser, setTab, createFolder, getChildren,
   rename, remove, sharepg, changeModalText, changeModalState,
@@ -15,8 +15,7 @@ class Home extends Component {
   render() {
     const documentsProps = {...this.props, type: 'home'}
     return (
-      // <Documents {...documentsProps} />
-      <Download />
+      <Documents {...documentsProps} />
     )
   }
 }

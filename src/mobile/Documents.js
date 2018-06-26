@@ -2,13 +2,15 @@ import React, { Component } from 'react';
 import { Image, View, ListView, StyleSheet, TextInput } from 'react-native'
 import { Item, Input, Fab, List, ListItem, Thumbnail, Text, Body, Grid, Col,
   Button, ActionSheet, Header, Left, Title, Right, Toast, } from "native-base";
-import {AsyncStorage} from 'react-native'
+import {AsyncStorage, Platform, Clipboard} from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Modal from "react-native-modal"
 import {BASEURL} from '../utils'
 import {isArrayOK} from '../utils/array'
 import {ThumbnailOf} from '../utils/format'
 import { DocumentPicker, DocumentPickerUtil } from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
+import FileViewer from 'react-native-file-viewer';
 //import Row from './Row'
 
 const CANCEL_INDEX = 0;
@@ -47,10 +49,14 @@ export default class Documents extends Component {
     this.state = {
       isLoading: true,
       isFolderShown: false,
+      isPublicLink: false,
       selectedForRename: false,
       sharepg: false,
       showToast: false,
       renameText: null,
+      uuid: null,
+      itemName: null,
+      clipboard: null,
     }
   }
   async stateSet() {
@@ -120,15 +126,6 @@ export default class Documents extends Component {
     }
   }
 
-  directLink() {
-    console.log('Direct Link');
-  }
-  download() {
-    console.log('Download');
-  }
-  share() {
-    console.log('Share');
-  }
   removeForever(id) {
       this.setState({isLoading: true})
       this.props.removeForever(id)
@@ -154,10 +151,10 @@ export default class Documents extends Component {
       res.fileSize
     );
     // let source = {uri: res.uri.replace('file://', ''), isStatic: true};
-    const url = `http://po.stg.persiangig.com/cfs/rest/upload/binary?path-id=0&name=${res.fileName}&size=${res.fileSize}&dlc=false&subdomain=false`
-    // const url = 'http://po.stg.persiangig.com/cws/rest/vmBills/createInvoice'
-    // const url = 'http://po.stg.persiangig.com/cfs/rest/users/currentUser'
-    // const url = 'http://po.stg.persiangig.com/cfs/rest/languages'
+    const url = `${BASEURL}/cfs/rest/upload/binary?path-id=0&name=${res.fileName}&size=${res.fileSize}&dlc=false&subdomain=false`
+    // const url = '${BASEURL}/cws/rest/vmBills/createInvoice'
+    // const url = '${BASEURL}/cfs/rest/users/currentUser'
+    // const url = '${BASEURL}/cfs/rest/languages'
     // console.log('url::', url);
 
     this.setState({isLoading: true})
@@ -235,15 +232,16 @@ export default class Documents extends Component {
               this.setState({selectedForRename: item.id, renameText: item.name})
             break;
           case 3:
-            this.share()
+            // share
+            this.setState({isPublicLink: true, isDirect: false, uuid: item.uuid, itemName: item.name})
             break;
           case 4:
             // Share with PG users
             this.setState({sharepg: item.id})
             break;
-
           case 5:
-            this.directLink()
+            // direct link
+            this.setState({isPublicLink: true, isDirect: true, uuid: item.uuid, itemName: item.name})
             break;
           case 6:
             this.download()
@@ -256,6 +254,7 @@ export default class Documents extends Component {
     )
   }
   press(selectedItem) {
+    console.log('press:', selectedItem);
     if (selectedItem.discriminator == 'D') {
       this.openFolder(selectedItem.fullPath)
     } else if (selectedItem.discriminator == 'F') {
@@ -269,8 +268,44 @@ export default class Documents extends Component {
         this.props.navigation.navigate("Document",
           {documents: [selectedItem, ...documents.slice(selectedItemIndex + 1), ...documents.slice(0, selectedItemIndex)]
           })
+      } else {
+        this.openFile(`${BASEURL}/preview/${selectedItem.uuid}/${selectedItem.name}`)
       }
     }
+  }
+  getLocalPath (url) {
+    const filename = url.split('/').pop();
+    // feel free to change main path according to your requirements
+    return `${RNFS.DocumentDirectoryPath}/${filename}`;
+  }
+  openFile(url) {
+    // const url = '${BASEURL}/preview/71lT9xpYNI/2.pdf';
+    const localFile = this.getLocalPath(url);
+
+    const options = {
+      fromUrl: url,
+      toFile: localFile
+    };
+    RNFS.downloadFile(options).promise
+    .then(() => FileViewer.open(localFile))
+    .then(() => {
+    	// success
+    })
+    .catch(error => {
+    	// error
+    });
+  }
+
+  async doReadClipboard() {
+    const clipboard = await Clipboard.getString()
+    this.setState({clipboard})
+  }
+  readClipboard() {
+    this.doReadClipboard()
+  }
+  writeClipboard(string) {
+    console.log('clip1:', string);
+    Clipboard.setString(string)
   }
   render() {
     console.log('Documents props', this.props)
@@ -320,7 +355,7 @@ export default class Documents extends Component {
           onSwipe={() => this.setState({ sharepg: false })}
           swipeDirection="left"
           >
-          <View style={styles.folder}>
+          <View style={styles.modal}>
             <Text style={{marginLeft: 5, marginBottom: 10 }}>اشتراک با کاربران پرشین‌گیگ</Text>
              <Item floatingLabel last>
               <Input placeholder='ایمیل'
@@ -344,7 +379,7 @@ export default class Documents extends Component {
           onSwipe={() => this.setState({ selectedForRename: false })}
           swipeDirection="left"
           >
-          <View style={styles.folder}>
+          <View style={styles.modal}>
             <Text style={{marginLeft: 5, marginBottom: 10 }}>تغییر نام</Text>
              <Item floatingLabel last>
               <Input placeholder='نام جدید'
@@ -369,8 +404,8 @@ export default class Documents extends Component {
           onSwipe={() => this.setState({ isFolderShown: false })}
           swipeDirection="left"
           >
-          <View style={styles.folder}>
-            <Text style={{marginLeft: 5, marginBottom: 10 }}>New Folder</Text>
+          <View style={styles.modal}>
+            <Text style={{marginLeft: 5, marginBottom: 10 }}>پوشه جدید</Text>
              <Item floatingLabel last>
               <Input placeholder='Folder name'
                 autoCapitalize = 'none'
@@ -384,7 +419,7 @@ export default class Documents extends Component {
                 && this.folderName.props.value.trim() != '' && this.createFolder()
               }}
               style={{marginLeft: 5, marginRight: 5, marginTop: 20, marginBottom: 20 }}>
-              <Text>Create</Text>
+              <Text>ایجاد</Text>
               {this.state.isLoading &&
                 <Text>
                   <Icon name='spinner' size={20} />
@@ -392,12 +427,42 @@ export default class Documents extends Component {
             </Button>
           </View>
         </Modal>
+        <Modal isVisible={this.state.isPublicLink}
+          onBackdropPress={() => this.setState({ isPublicLink: false })}
+          onSwipe={() => this.setState({ isPublicLink: false })}
+          swipeDirection="left"
+          >
+          <View style={styles.modal}>
+            <Text style={{marginLeft: 5, marginBottom: 10 }}>لینک
+              {this.state.isDirect? ' مستقیم':
+                 ' اشتراک عمومی'}
+            </Text>
+            <Text>
+              {this.state.isDirect?
+               `${BASEURL}/preview/${this.state.uuid}/${this.state.itemName}`
+              :`${BASEURL}/download/${this.state.uuid}/${this.state.itemName}/dl`}
+            </Text>
+            <Button block
+              onPress={() => {
+                this.setState({ isPublicLink: false })
+                this.writeClipboard(this.state.isDirect?
+                 `${BASEURL}/preview/${this.state.uuid}/${this.state.itemName}`
+                :`${BASEURL}/download/${this.state.uuid}/${this.state.itemName}/dl`)
+                console.log('Clipboard:', this.readClipboard());
+
+              }}
+              style={{marginLeft: 5, marginRight: 5, marginTop: 20, marginBottom: 20 }}>
+              <Text>کپی</Text>
+            </Button>
+          </View>
+        </Modal>
+
         {this.state.isLoading &&
 
             <View style={{position: 'absolute', zIndex: 2,
               backgroundColor: '#999', width: '100%', height: '100%',
                 opacity: 0.4,
-                marginTop: 50,
+                marginTop: 65,
                 paddingTop: 50, }}>
                 <View  style={{position: 'absolute', left: '38%', top: 40,
                 borderRadius: 20,
@@ -486,7 +551,7 @@ export default class Documents extends Component {
 
 
 const styles = StyleSheet.create({
-  folder: {
+  modal: {
     backgroundColor: 'white',
     height: 200,
     padding: 20,
