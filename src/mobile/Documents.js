@@ -53,10 +53,11 @@ export default class Documents extends Component {
       selectedForRename: false,
       sharepg: false,
       showToast: false,
-      renameText: null,
-      uuid: null,
-      itemName: null,
-      clipboard: null,
+      // renameText: null,
+      // uuid: null,
+      // itemName: null,
+      // clipboard: null,
+      // doesExist: null,
     }
   }
   async stateSet() {
@@ -224,10 +225,16 @@ export default class Documents extends Component {
       buttonIndex => {
         switch (buttonIndex) {
           case 1:
-            this.props.type == 'trash'? this.removeForever(item.id): this.props.type == 'shared'? this.directLink(): this.props.remove(item.id)
+            this.props.type == 'trash'? this.removeForever(item.id):
+            this.props.type == 'shared'?
+            // this.directLink()
+            this.setState({isPublicLink: true, isDirect: true, uuid: item.uuid, itemName: item.name})
+            : this.props.remove(item.id)
             break;
           case 2:
-            this.props.type == 'trash'? this.restoreTrash(item.id): this.props.type == 'shared'? this.download():
+            this.props.type == 'trash'? this.restoreTrash(item.id):
+            this.props.type == 'shared'?
+            this.downloadFile(item.name, item.uuid):
               // Rename
               this.setState({selectedForRename: item.id, renameText: item.name})
             break;
@@ -244,7 +251,7 @@ export default class Documents extends Component {
             this.setState({isPublicLink: true, isDirect: true, uuid: item.uuid, itemName: item.name})
             break;
           case 6:
-            this.download()
+          this.downloadFile(item.name, item.uuid)
             break;
           // default:
 
@@ -253,6 +260,7 @@ export default class Documents extends Component {
       }
     )
   }
+
   press(selectedItem) {
     console.log('press:', selectedItem);
     if (selectedItem.discriminator == 'D') {
@@ -269,31 +277,54 @@ export default class Documents extends Component {
           {documents: [selectedItem, ...documents.slice(selectedItemIndex + 1), ...documents.slice(0, selectedItemIndex)]
           })
       } else {
-        this.openFile(`${BASEURL}/preview/${selectedItem.uuid}/${selectedItem.name}`)
+        this.openFile(selectedItem)
       }
     }
   }
-  getLocalPath (url) {
-    const filename = url.split('/').pop();
-    // feel free to change main path according to your requirements
-    return `${RNFS.DocumentDirectoryPath}/${filename}`;
-  }
-  openFile(url) {
-    // const url = '${BASEURL}/preview/71lT9xpYNI/2.pdf';
-    const localFile = this.getLocalPath(url);
 
+  async downloadFile(fileName, uuid) {
+    fileName = fileName.replace(' ', '%20')
+    await this.preDownload(fileName, uuid)
+    const localFile = `${RNFS.DocumentDirectoryPath}/${fileName}`
+    let newFilePath = `${RNFS.DocumentDirectoryPath}/pg/${fileName}`
+    const file = fileName.substr(0, fileName.lastIndexOf('.'))
+    const postfix = fileName.substr(fileName.lastIndexOf('.') + 1)
+    await RNFS.mkdir(newFilePath)
+    let i = 0
+    let doesExist = await RNFS.exists(newFilePath)
+    while (doesExist) {
+      newFilePath = `${RNFS.DocumentDirectoryPath}/pg/${file}-(${++i}).${postfix}`
+      console.log('i:', i, newFilePath);
+      doesExist = await RNFS.exists(newFilePath)
+    }
+    console.log('paths3', newFilePath);
+    await RNFS.copyFile(localFile, newFilePath)
+    FileViewer.open(newFilePath)
+    this.setState({isLoading: false})
+  }
+
+  async preDownload(fileName, uuid) {
+    this.setState({isLoading: true})
+    const url = `${BASEURL}/preview/${uuid}/${fileName}`
+    const localFile = `${RNFS.DocumentDirectoryPath}/${fileName}`
     const options = {
       fromUrl: url,
       toFile: localFile
     };
-    RNFS.downloadFile(options).promise
-    .then(() => FileViewer.open(localFile))
-    .then(() => {
-    	// success
-    })
-    .catch(error => {
-    	// error
-    });
+    try {
+      await RNFS.downloadFile(options).promise
+    } catch (e) {
+      console.log('down:', e);
+    }
+  }
+
+  async openFile(selectedItem) {
+    const fileName = selectedItem.name.replace(' ', '%20')
+    await this.preDownload(fileName, selectedItem.uuid)
+    const localFile = `${RNFS.DocumentDirectoryPath}/${fileName}`
+
+    FileViewer.open(localFile)
+    this.setState({isLoading: false})
   }
 
   async doReadClipboard() {
